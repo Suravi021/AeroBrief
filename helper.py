@@ -189,8 +189,9 @@ def parse_metar(raw):
     print("\nDecoded METAR Report:\n")
     for key, value in result.items():
         final += key
-        
-        final += value 
+        final += ' '        
+        final += value
+        final += '\n'
         print(f"{key}: {value}")
     
 taf_dict = {
@@ -231,25 +232,25 @@ def decode_wind(wind_str):
 
 def parse_taf(taf_str):
     words = taf_str.split()
-    translation = []
+    translation = ''
     
     for word in words:
         if word in taf_dict:
-            translation.append(taf_dict[word])
+            translation += taf_dict[word]
         elif word.startswith("FM"):
             time = word[2:]
-            translation.append(f"From {time[:2]}:{time[2:]}Z")
+            translation += f"From {time[:2]}:{time[2:]}Z"
         elif decode_wind(word):
             translation.append(decode_wind(word))
         elif re.match(r"\d{4}/\d{4}", word):  # validity period
             start, end = word[:4], word[5:]
-            translation.append(f"Valid from {start[:2]}Z on day {start[2:]} to {end[:2]}Z on day {end[2:]}")
+            translation += f"Valid from {start[:2]}Z on day {start[2:]} to {end[:2]}Z on day {end[2:]}"
         elif re.match(r"\d{6}Z", word):  # issuance time
-            translation.append(f"Issued at {word[:2]} day, {word[2:4]}:{word[4:6]}Z")
+            translation += f"Issued at {word[:2]} day, {word[2:4]}:{word[4:6]}Z"
         else:
-            translation.append(word)
-
-    return "\n".join(translation)
+            translation += word
+    translation += "\n"
+    return translation
 
 
 def is_point_in_polygon(x, y, polygon):
