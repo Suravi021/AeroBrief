@@ -2,6 +2,8 @@ import streamlit as st
 import streamlit.components.v1 as components
 import json
 import uuid
+import re
+from helper import fetch_metar, fetch_sigmet, fetch_pirep
 
 # Set page configuration
 st.set_page_config(layout="wide", page_title="Flight Weather Planning Tool")
@@ -20,6 +22,11 @@ if 'delete_airport' not in st.session_state:
     st.session_state.delete_airport = None
 if 'airport_data' not in st.session_state:
     st.session_state.airport_data = []
+#mine   
+if 'list_names' not in st.session_state:
+    st.session_state.list_names = []
+if 'all_reports' not in st.session_state:
+    st.session_state.all_reports = {}
 
 # Callbacks for actions outside the form
 if st.session_state.add_airport:
@@ -30,12 +37,10 @@ if st.session_state.delete_airport is not None:
     st.session_state.airports = [a for a in st.session_state.airports if a["id"] != st.session_state.delete_airport]
     st.session_state.delete_airport = None
 
-# Add Airport button (outside the form)
 if st.button("➕ Add Airport"):
     st.session_state.add_airport = True
     st.rerun()
 
-# Airport input fields
 for i, airport in enumerate(st.session_state.airports):
     cols = st.columns([3, 2, 1])
     with cols[0]:
@@ -56,42 +61,42 @@ for i, airport in enumerate(st.session_state.airports):
 
 # Submit button (outside the form)
 if st.button("Submit"):
-    # Update airport data from form
+    
     for airport in st.session_state.airports:
-        airport["icao"] = st.session_state[f"icao_{airport['id']}"]
+        if not re.fullmatch(r"^K[A-Z]{3}$", st.session_state[f"icao_{airport['id']}"]):
+            st.warning(" ONLY VALID USA ICAO CODE")
+            st.session_state.submitted = False
+        try: 
+            k = int(st.session_state[f"alt_{airport['id']}"])
+        except:
+            # st.write(airport['altitude'])
+            st.warning("ALtitude should be a number")
+            st.session_state.submitted = False
+        
+    
+if st.session_state.submitted:
+    for airport in st.session_state.airports:
+        # airport["icao"] = st.session_state[f"icao_{airport['id']}"]
         airport["altitude"] = st.session_state[f"alt_{airport['id']}"]
-    
-    # Create airport data for display
-    st.session_state.airport_data = []
-    for airport in st.session_state.airports:
-        if airport["icao"]:
-            # Mock data - in reality you'd fetch this from your backend
-            mock_data = {
-                "icao": airport["icao"],
-                "altitude": airport["altitude"],
-                "metar": f"METAR {airport['icao']} 221530Z 12005KT 10SM FEW050 25/15 A3001 RMK AO2",
-                "taf": f"TAF {airport['icao']} 221530Z 2215/2315 12005KT P6SM FEW050 TEMPO 2300/2306 5SM BR"
-            }
-            st.session_state.airport_data.append(mock_data)
-    
-    st.session_state.submitted = True
+        st.session_state.list_names.append(airport['icao'])
+    st.session_state.all_reports = fetch_metar(st.session_state.list_names) 
+    st.session_state.all_reports['sigmet'] = fetch_sigmet()
+    st.session_state.all_reports['pirep'] = fetch_pirep()           
     st.rerun()
+
+    fetch_metar(['a','b']) -> {'a':{'metar':englgih, 'taf': englih}}
 
 # Display airport data if submitted
 if st.session_state.submitted and st.session_state.airport_data:
-    # Display airports side by side
     num_airports = len(st.session_state.airport_data)
     
-    # Create columns for airports
     airport_cols = st.columns(num_airports)
     
-    # Display airport headers
     for i, col in enumerate(airport_cols):
         if i < len(st.session_state.airport_data):
             airport = st.session_state.airport_data[i]
             col.subheader(f"{airport['icao']} ({airport['altitude']} ft)")
     
-    # Create columns for METAR expandables
     metar_cols = st.columns(num_airports)
     for i, col in enumerate(metar_cols):
         if i < len(st.session_state.airport_data):
