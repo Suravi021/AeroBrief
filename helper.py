@@ -189,10 +189,11 @@ def parse_metar(raw):
     print("\nDecoded METAR Report:\n")
     for key, value in result.items():
         final += key
-        final += ' '        
+        final += ' '
         final += value
-        final += '\n'
-        print(f"{key}: {value}")
+        final += "\n" 
+        # print(f"{key}: {value}")
+    return final
     
 taf_dict = {
     "SKC": "Sky clear",
@@ -232,25 +233,25 @@ def decode_wind(wind_str):
 
 def parse_taf(taf_str):
     words = taf_str.split()
-    translation = ''
+    translation = []
     
     for word in words:
         if word in taf_dict:
-            translation += taf_dict[word]
+            translation.append(taf_dict[word])
         elif word.startswith("FM"):
             time = word[2:]
-            translation += f"From {time[:2]}:{time[2:]}Z"
+            translation.append(f"From {time[:2]}:{time[2:]}Z")
         elif decode_wind(word):
             translation.append(decode_wind(word))
         elif re.match(r"\d{4}/\d{4}", word):  # validity period
             start, end = word[:4], word[5:]
-            translation += f"Valid from {start[:2]}Z on day {start[2:]} to {end[:2]}Z on day {end[2:]}"
+            translation.append(f"Valid from {start[:2]}Z on day {start[2:]} to {end[:2]}Z on day {end[2:]}")
         elif re.match(r"\d{6}Z", word):  # issuance time
-            translation += f"Issued at {word[:2]} day, {word[2:4]}:{word[4:6]}Z"
+            translation.append(f"Issued at {word[:2]} day, {word[2:4]}:{word[4:6]}Z")
         else:
-            translation += word
-    translation += "\n"
-    return translation
+            translation.append(word)
+
+    return "\n".join(translation)
 
 
 def is_point_in_polygon(x, y, polygon):
@@ -270,21 +271,29 @@ def is_point_in_polygon(x, y, polygon):
 
     return inside
 def fetch_metar(airport_ids):
-    airport_id = ''
-    for id in airport_ids:
-        airport_id += id
-        airport_id += '%'
-    airport_id = airport_id[:-1]
+    if isinstance(airport_ids, list):
+        airport_id = ''
+        for id in airport_ids:
+            airport_id += id
+            airport_id += '%'
+        airport_id = airport_id[:-1]
+    else:
+        airport_id = airport_ids
+        airport_ids = ''
 
     url = f"https://aviationweather.gov/api/data/metar?ids={airport_id}&format=json&taf=true"
     response = requests.get(url)
-    response = response.json*()
+    response = response.json()
     n = len(airport_ids)
     metar_taf = {}
+    if n == 0:
+        print(response)
+        return parse_metar(response[0]['rawOb'])
     for x in range(n):
         airport_data = response[x]
+        print(airport_data)
         metar_taf[airport_data['icaoId']] = {
-            'taf': parse_taf(airport_data['rawTaf']),
+            # 'taf': parse_taf(airport_data['rawTaf']),
             'metar': parse_metar(airport_data['rawOb'])
         }        
     return metar_taf
@@ -292,6 +301,7 @@ def fetch_metar(airport_ids):
 def fetch_taf(airport_id):
     url = f"https://aviationweather.gov/api/data/taf?ids={airport_id}&format=json"
     response = requests.get(url)
+    parse_taf()
     return response.json()
 
 def fetch_pirep(airport_id):
@@ -300,7 +310,7 @@ def fetch_pirep(airport_id):
     response1=response1.json()
     return response1
 
-def fetch_sigmet(airport_id, altitude=None):
+def fetch_sigmet(altitude=None):
     base_url = "https://aviationweather.gov/api/data/airsigmet"
     params = {
         "format": "json"
