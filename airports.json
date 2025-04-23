@@ -1,0 +1,27 @@
+{"waypoints": [
+  {
+    "airport_id": "KMYV",
+    "altitude": 150,
+    "lat": 39.0978,
+    "log": -121.57
+  },
+  {
+    "airport_id": "KANK",
+    "altitude": 2000,
+    "lat": 38.5383,
+    "log": -106.049
+  },
+  {
+    "airport_id": "KSVE",
+    "altitude": 30000,
+    "lat": 40.3757,
+    "log": -120.573
+  },
+  {
+    "airport_id": "KLPC",
+    "altitude": 70000,
+    "lat": 34.6656,
+    "log": -120.468
+  }
+]
+}

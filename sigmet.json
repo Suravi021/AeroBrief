@@ -1,0 +1,260 @@
+ {
+        "sigmet": [
+          {
+            "airSigmetId": 624256,
+            "icaoId": "KKCI",
+            "alphaChar": "C",
+            "receiptTime": "2025-04-22 05:56:19",
+            "creationTime": "2025-04-22 05:55:00",
+            "validTimeFrom": 1745301300,
+            "validTimeTo": 1745308500,
+            "airSigmetType": "SIGMET",
+            "hazard": "CONVECTIVE",
+            "severity": 5,
+            "altitudeLow1": null,
+            "altitudeLow2": null,
+            "altitudeHi1": 34000,
+            "altitudeHi2": 34000,
+            "movementDir": 260,
+            "movementSpd": 35,
+            "rawAirSigmet": "WSUS32 KKCI 220555 \nSIGC  \nCONVECTIVE SIGMET 17C \nVALID UNTIL 0755Z \nIA \nFROM 30SSE MCW-20ESE DSM-50WSW DSM-20W FOD-30SSE MCW \nDMSHG AREA TS MOV FROM 26035KT. TOPS TO FL340. \n \nOUTLOOK VALID 220755-221155 \nFROM 50WNW BRD-30ESE BRD-30N ODI-30NW DBQ-IOW-30N IRK-50NNE \nMCI-30SE RWF-70SE FAR-50WNW BRD \nWST ISSUANCES POSS. REFER TO MOST RECENT ACUS01 KWNS FROM STORM \nPREDICTION CENTER FOR SYNOPSIS AND METEOROLOGICAL DETAILS.",
+            "postProcessFlag": 0,
+            "coords": [
+              {
+                "lat": 42.6249,
+                "lon": -93.0684
+              },
+              {
+                "lat": 41.3121,
+                "lon": -93.2412
+              },
+              {
+                "lat": 41.1157,
+                "lon": -94.6745
+              },
+              {
+                "lat": 42.6091,
+                "lon": -94.7416
+              },
+              {
+                "lat": 42.6249,
+                "lon": -93.0684
+              }
+            ]
+          },
+          {
+            "airSigmetId": 624257,
+            "icaoId": "KKCI",
+            "alphaChar": "W",
+            "receiptTime": "2025-04-22 05:56:23",
+            "creationTime": "2025-04-22 05:55:00",
+            "validTimeFrom": 1745301300,
+            "validTimeTo": 1745308500,
+            "airSigmetType": "SIGMET",
+            "hazard": "CONVECTIVE",
+            "severity": 0,
+            "altitudeLow1": null,
+            "altitudeLow2": null,
+            "altitudeHi1": null,
+            "altitudeHi2": null,
+            "movementDir": null,
+            "movementSpd": null,
+            "rawAirSigmet": "WSUS33 KKCI 220555 \nSIGW  \nCONVECTIVE SIGMET...NONE \n \nOUTLOOK VALID 220755-221155 \nTS ARE NOT EXPD TO REQUIRE WST ISSUANCES.",
+            "postProcessFlag": 0,
+            "coords": [
+              {
+                "lat": 49,
+                "lon": -122.77
+              },
+              {
+                "lat": 48.96,
+                "lon": -123.12
+              },
+              {
+                "lat": 48.6,
+                "lon": -123.02
+              },
+              {
+                "lat": 48.3,
+                "lon": -123.16
+              },
+              {
+                "lat": 48.2,
+                "lon": -123.69
+              },
+              {
+                "lat": 48.36,
+                "lon": -124.35
+              },
+              {
+                "lat": 48.39,
+                "lon": -124.73
+              },
+              {
+                "lat": 48.38,
+                "lon": -124.72
+              },
+              {
+                "lat": 48.49,
+                "lon": -125
+              },
+              {
+                "lat": 48.4,
+                "lon": -125.96
+              },
+              {
+                "lat": 48.41,
+                "lon": -127.03
+              },
+              {
+                "lat": 48.33,
+                "lon": -128.01
+              },
+              {
+                "lat": 47.48,
+                "lon": -127.49
+              },
+              {
+                "lat": 46,
+                "lon": -127.01
+              },
+              {
+                "lat": 44.98,
+                "lon": -126.52
+              },
+              {
+                "lat": 44.01,
+                "lon": -126.51
+              },
+              {
+                "lat": 42.97,
+                "lon": -126.72
+              },
+              {
+                "lat": 40.01,
+                "lon": -127
+              },
+              {
+                "lat": 34,
+                "lon": -123.01
+              },
+              {
+                "lat": 32.99,
+                "lon": -122.01
+              },
+              {
+                "lat": 31.99,
+                "lon": -121.66
+              },
+              {
+                "lat": 30.98,
+                "lon": -121.01
+              },
+              {
+                "lat": 30.67,
+                "lon": -120.65
+              },
+              {
+                "lat": 31.1,
+                "lon": -120
+              },
+              {
+                "lat": 31.62,
+                "lon": -118.97
+              },
+              {
+                "lat": 32.4,
+                "lon": -117.1
+              },
+              {
+                "lat": 32.4,
+                "lon": -117.09
+              },
+              {
+                "lat": 32.53,
+                "lon": -117.12
+              },
+              {
+                "lat": 32.72,
+                "lon": -114.72
+              },
+              {
+                "lat": 32.5,
+                "lon": -114.81
+              },
+              {
+                "lat": 31.33,
+                "lon": -111.08
+              },
+              {
+                "lat": 31.33,
+                "lon": -108.2
+              },
+              {
+                "lat": 31.78,
+                "lon": -108.2
+              },
+              {
+                "lat": 31.78,
+                "lon": -107
+              },
+              {
+                "lat": 49,
+                "lon": -107
+              },
+              {
+                "lat": 49,
+                "lon": -122.77
+              }
+            ]
+          },
+          {
+            "airSigmetId": 624259,
+            "icaoId": "KKCI",
+            "alphaChar": "E",
+            "receiptTime": "2025-04-22 05:56:23",
+            "creationTime": "2025-04-22 05:55:00",
+            "validTimeFrom": 1745301300,
+            "validTimeTo": 1745308500,
+            "airSigmetType": "SIGMET",
+            "hazard": "CONVECTIVE",
+            "severity": 5,
+            "altitudeLow1": null,
+            "altitudeLow2": null,
+            "altitudeHi1": 45000,
+            "altitudeHi2": 45000,
+            "movementDir": 220,
+            "movementSpd": 25,
+            "rawAirSigmet": "WSUS31 KKCI 220555 \nSIGE  \nCONVECTIVE SIGMET 8E \nVALID UNTIL 0755Z \nGA TN AL \nFROM 40NNE GQO-40NNW ATL-30WNW ATL-40ESE VUZ-40S BNA-40NNE GQO \nAREA EMBD TS MOV FROM 22025KT. TOPS TO FL450. \n \nOUTLOOK VALID 220755-221155 \nFROM VXV-30NE ODF-30W LGC-50E MEI-40WSW MSL-VXV \nWST ISSUANCES POSS. REFER TO MOST RECENT ACUS01 KWNS FROM STORM \nPREDICTION CENTER FOR SYNOPSIS AND METEOROLOGICAL DETAILS.",
+            "postProcessFlag": 0,
+            "coords": [
+              {
+                "lat": 35.5738,
+                "lon": -84.8372
+              },
+              {
+                "lat": 34.2438,
+                "lon": -84.7477
+              },
+              {
+                "lat": 33.8213,
+                "lon": -84.9994
+              },
+              {
+                "lat": 33.4134,
+                "lon": -86.1642
+              },
+              {
+                "lat": 35.4752,
+                "lon": -86.68
+              },
+              {
+                "lat": 35.5738,
+                "lon": -84.8372
+              }
+            ]
+          }
+        ]
+      }
+    
+  
