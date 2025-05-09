@@ -2,10 +2,18 @@ import streamlit as st
 import streamlit.components.v1 as components
 import json
 import uuid
+from helper import * 
 
-# Set page configuration
+
+def get_dropdown_styles(color_name):
+    colors = [{"primary": "#28a745","light": "#d4edda"},{"primary": "#ffc107","light": "#fff3cd"},{"primary": "#fd7e14","light": "#ffe5b4"},{"primary": "#dc3545","light": "#f8d7da"},{"primary": "#6c757d","light": "#f1f3f5"}]
+    print(color_name)
+    print(type(color_name))
+    return colors[color_name-1]
+
 st.set_page_config(layout="wide", page_title="Flight Weather Planning Tool")
 
+airports=[]
 # Title of the app
 st.title("Flight Weather Planning Tool")
 
@@ -20,6 +28,9 @@ if 'delete_airport' not in st.session_state:
     st.session_state.delete_airport = None
 if 'airport_data' not in st.session_state:
     st.session_state.airport_data = []
+if 'report' not in st.session_state:
+    st.session_state.report = ''
+
 
 # Callbacks for actions outside the form
 if st.session_state.add_airport:
@@ -60,19 +71,42 @@ if st.button("Submit"):
     for airport in st.session_state.airports:
         airport["icao"] = st.session_state[f"icao_{airport['id']}"]
         airport["altitude"] = st.session_state[f"alt_{airport['id']}"]
+        # airport["metar"]=fetch_metar()
+
+
+        lat, lon= lat_log(airport["icao"])
+        airports.append({
+        "airport_id": airport["icao"],
+        "altitude": airport["altitude"],
+        "lat": lat,
+        "lon": lon,
+        "warning_level": warning_level(airport["icao"])
+        })
+
+    output_data = {"waypoints": airports}
+    with open("airports_st.json", "w") as f:
+        json.dump(output_data, f, indent=2)
     
     # Create airport data for display
     st.session_state.airport_data = []
     for airport in st.session_state.airports:
         if airport["icao"]:
-            # Mock data - in reality you'd fetch this from your backend
+            k = parse_metar(airport["icao"])
+            l = get_formatted_taf(airport["icao"])
             mock_data = {
                 "icao": airport["icao"],
                 "altitude": airport["altitude"],
-                "metar": f"METAR {airport['icao']} 221530Z 12005KT 10SM FEW050 25/15 A3001 RMK AO2",
-                "taf": f"TAF {airport['icao']} 221530Z 2215/2315 12005KT P6SM FEW050 TEMPO 2300/2306 5SM BR"
+                "metar":k,
+                "taf": l,
+                "warning_level": warning_level(airport["icao"])
             }
+            st.session_state.report += '\n'
+            st.session_state.report += k
+            st.session_state.report += '\n'
+            st.session_state.report += l
             st.session_state.airport_data.append(mock_data)
+            
+            
     
     st.session_state.submitted = True
     st.rerun()
@@ -97,170 +131,303 @@ if st.session_state.submitted and st.session_state.airport_data:
         if i < len(st.session_state.airport_data):
             airport = st.session_state.airport_data[i]
             with col:
-                with st.expander("METAR"):
-                    st.text(airport["metar"])
+                style = get_dropdown_styles(airport["warning_level"])
+                st.markdown(f"""
+                                <style>
+                                .custom-expander > summary {{
+                                    background-color: {style['primary']};
+                                    color: white;
+                                    padding: 10px;
+                                    border-radius: 10px;
+                                    cursor: pointer;
+                                    font-size: 18px;
+                                    font-weight: bold;
+                                }}
+
+                                .custom-expander[open] > summary {{
+                                    border-bottom-left-radius: 0;
+                                    border-bottom-right-radius: 0;
+                                }}
+
+                                .custom-expander {{
+                                    border: 2px solid {style['primary']};
+                                    border-radius: 10px;
+                                    margin-bottom: 1rem;
+                                }}
+                                </style>
+                            """, unsafe_allow_html=True)
+
+                st.markdown(f"""
+                            <details class="custom-expander">
+                            <summary>METAR</summary>
+                            <div style='padding: 15px; color: black; background-color: {style['light']}; border-top: 2px solid {style['primary']};'>
+                                <p>{airport['metar'].replace('\n', '<br>')}</p>
+                            </div>
+                            </details>
+                            """, unsafe_allow_html=True)
     
-    # Create columns for TAF expandables
     taf_cols = st.columns(num_airports)
     for i, col in enumerate(taf_cols):
         if i < len(st.session_state.airport_data):
             airport = st.session_state.airport_data[i]
             with col:
-                with st.expander("TAF"):
-                    st.text(airport["taf"])
+                style = get_dropdown_styles(airport["warning_level"])
+                st.markdown(f"""
+                                <style>
+                                .custom-expander > summary {{
+                                    background-color: {style['primary']};
+                                    color: white;
+                                    padding: 10px;
+                                    border-radius: 10px;
+                                    cursor: pointer;
+                                    font-size: 18px;
+                                    font-weight: bold;
+                                }}
+
+                                .custom-expander[open] > summary {{
+                                    border-bottom-left-radius: 0;
+                                    border-bottom-right-radius: 0;
+                                }}
+
+                                .custom-expander {{
+                                    border: 2px solid {style['primary']};
+                                    border-radius: 10px;
+                                    margin-bottom: 1rem;
+                                }}
+                                </style>
+                            """, unsafe_allow_html=True)
+                st.markdown(f"""
+                            <details class="custom-expander">
+                            <summary>TAF</summary>
+                            <div style='padding: 15px;color: black; background-color: {style['light']}; border-top: 2px solid {style['primary']};'>
+                                <p>{airport['taf'].replace('\n', '<br>')}</p>
+                            </div>
+                            </details>
+                            """, unsafe_allow_html=True) ##########
+
 
     # Load and display the map
     # Load your JSON data
-    try:
-        with open('pirep.json', 'r', encoding='utf-8') as f:
-            pirep_data = json.load(f)
-    except Exception as e:
-        st.error(f"Error loading pirep.json: {e}")
-        pirep_data = {"pirep": []}
+    x=generate_quick('airports_st.json')
+        
 
-    try:
-        with open('sigmet.json', 'r', encoding='utf-8') as f:
-            sigmet_data = json.load(f)
-    except Exception as e:
-        st.error(f"Error loading sigmet.json: {e}")
-        sigmet_data = {"sigmet": []}
 
-    try:
-        with open('airports.json', 'r', encoding='utf-8') as f:
-            airports_data = json.load(f)
-    except Exception as e:
-        st.error(f"Error loading airports.json: {e}")
-        airports_data = {"waypoints": []}
+    
 
-    # Read your HTML template and modify it to use the injected data
+    with open('pireps.json', 'r', encoding='utf-8') as f:
+        pirep_data = json.load(f)
+        ##print(pirep_data)
+    if not pirep_data.get('pireps'):
+        st.warning("No significant PIREPs found near the flight path.")
+        
+    with open('route_weather.json', 'r', encoding='utf-8') as f:
+        route_weather_data = json.load(f)
+        #print(route_weather_data)
+
+    if not route_weather_data.get('warnings'):
+            st.warning("No significant weather conditions detected near the flight path.")
+
+
+    sigmet_json_generator('airports_st.json')
+    with open('sigmets_new.json', 'r', encoding='utf-8') as f:
+        sigmet_data = json.load(f)
+        #print(sigmet_data)
+
+
+    with open('airports_st.json', 'r', encoding='utf-8') as f:
+        airports_data = json.load(f)
+        #print(airports_data)
+
+
     with open('index.html', 'r', encoding='utf-8') as file:
         html_content = file.read()
 
-    # Split the HTML at the point where we want to inject our data
-    split_point = html_content.find('fetch(\'pirep.json\')')
+    # Find the insertion point after map initialization
+    split_point = html_content.find('////hellow olrd')
     if split_point == -1:
-        st.error("Could not find the insertion point in HTML")
-    else:
-        # Take everything before the fetch commands
-        html_first_part = html_content[:split_point]
-        
-        # Find the end of the script tag
-        script_end = html_content.find('</script>', split_point)
-        html_last_part = html_content[script_end:] if script_end != -1 else ""
-        
-        # Create new JS that uses our injected data instead of fetching
-        new_js = f"""
-        // Data injected by Streamlit
-        const pireps = {json.dumps(pirep_data['pirep'])};
-        pireps.forEach(p => {{
-        if (!p.lat || !p.lon) return;
-        const info = `FLT LVL: ${{p.fltLvl || 'N/A'}}<br>Temp: ${{p.temp}}°C<br>Wind: ${{p.wdir}}° @ ${{p.wspd}} kt<br>AC: ${{p.acType}}`;
+        split_point = html_content.find('var map = L.map')  # Try to find map initialization
+        if split_point == -1:
+            st.error("Could not find the insertion point in HTML")
+            split_point = len(html_content)
 
-        L.circleMarker([p.lat, p.lon], {{
-            radius: 5,
-            fillColor: "blue",
-            color: "black",
-            weight: 1,
-            fillOpacity: 0.8
-        }}).addTo(map).bindPopup(info);
+    # Split the HTML content
+    html_first_part = html_content[:split_point]
+    #print()
+    #print()
+
+    #print()
+
+    #print(html_first_part)
+    html_last_part = html_content[split_point:]
+
+    #print(html_last_part)
+
+    new_js = f"""
+        // Function to create a slightly upward curved line between two points
+        function createCurvedLine(startPoint, endPoint) {{
+            const latlngs = [];
+            const points = 20; // Number of points to create a smooth curve
+            
+            // Calculate control point (for upward curve)
+            const midLat = (startPoint[0] + endPoint[0]) / 2;
+            const midLon = (startPoint[1] + endPoint[1]) / 2;
+            const distance = Math.sqrt(
+                Math.pow(endPoint[0] - startPoint[0], 2) + 
+                Math.pow(endPoint[1] - startPoint[1], 2)
+            );
+            
+            // Make the curve higher for longer distances
+            const curveHeight = distance * 0.15;
+            
+            // Create a quadratic Bezier curve
+            for (let i = 0; i <= points; i++) {{
+                const t = i / points;
+                const lat = (1-t)*(1-t)*startPoint[0] + 
+                            2*(1-t)*t*(midLat + curveHeight) + 
+                            t*t*endPoint[0];
+                const lon = (1-t)*(1-t)*startPoint[1] + 
+                            2*(1-t)*t*midLon + 
+                            t*t*endPoint[1];
+                latlngs.push([lat, lon]);
+            }}
+            return latlngs;
+        }}
+
+        function getSeverityColor(severity) {{
+            if (severity === 0) return "gray";
+            if (severity <= 2) return "yellow";
+            if (severity <= 4) return "orange";
+            if (severity === 5) return "red";
+            return "blue"; // fallback
+        }}
+
+
+        // PIREP data
+        const pireps = {json.dumps(pirep_data.get('pireps', []))};
+        pireps.forEach(p => {{
+            if (!p.lat || !p.lon) return;
+            const info = `${{p.summary || 'N/A'}}`;
+            L.circleMarker([p.lat, p.lon], {{
+                radius: 5,
+                fillColor: "blue",
+                color: "black",
+                weight: 1,
+                fillOpacity: 0.8
+            }}).addTo(map).bindPopup(info);
+        }});
+
+        // Route weather warnings
+        const warnings = {json.dumps(route_weather_data.get('warnings', []))};
+        warnings.forEach(p => {{
+            if (!p.lat || !p.lon) return;
+            const info = `Description: ${{p.description || 'N/A'}}<br>Temp: ${{p.temperature}}°C<br>Windspeed: ${{p.windspeed}}kt<br>code: ${{p.code}}`;
+            L.circleMarker([p.lat, p.lon], {{
+                radius: 7,
+                fillColor: "purple",
+                color: "purple",
+                weight: 1,
+                fillOpacity: 0.8
+            }}).addTo(map).bindPopup(info);
         }});
 
         // SIGMET data
-        const sigmets = {json.dumps(sigmet_data['sigmet'])};
+        const sigmets = {json.dumps(sigmet_data.get('sigmet', []))};
         sigmets.forEach(p => {{
-            if (!p.coords || p.coords.length < 3) return; // Need at least 3 points
-            
-            const info = `Time: ${{p.creationTime || 'N/A'}}<br>Speed: ${{p.movementSpd}} kt <br>Direction: ${{p.movementDir}}°<br>Hazard: ${{p.hazard}}`;
-            
+            if (!p.coords || p.coords.length < 3) return;
+            const info = `${{p.sigmet_eng || 'N/A'}}`;
             const latlngs = p.coords.map(c => [c.lat, c.lon]);
-            
-            const color = getSeverityColor(p.severity);
-            
+            const c = getSeverityColor(p.severity);
             L.polygon(latlngs, {{
-                color: color,
+                color: c,
                 weight: 2,
                 fillOpacity: 0.4
             }}).addTo(map).bindPopup(info);
         }});
 
         // Airport data
-        const waypoints = {json.dumps(airports_data['waypoints'])};
-        
-        // Filter airports by altitude
-        const lowAltitudeAirports = waypoints.filter(airport => airport.altitude < 9000);
-        const highAltitudeAirports = waypoints.filter(airport => airport.altitude >= 9000);
-        
-        // Add markers for all airports
-        lowAltitudeAirports.forEach(airport => {{
-            L.marker([airport.lat, airport.log], {{
-                icon: L.divIcon({{
-                    className: 'airport-marker low-altitude',
-                    html: `<div style="width: 10px; height: 10px; background-color: black; transform: rotate(45deg);"></div>`,
-                    iconSize: [10, 10]
-                }})
-            }}).addTo(map).bindPopup(`${{airport.airport_id}}<br>Altitude: ${{airport.altitude}} ft`);
-        }});
-        
-        highAltitudeAirports.forEach(airport => {{
-            L.marker([airport.lat, airport.log], {{
-                icon: L.divIcon({{
-                    className: 'airport-marker high-altitude',
-                    html: `<div style="background-color: red; width: 10px; height: 10px; border-radius: 50%;"></div>`,
-                    iconSize: [10, 10]
-                }})
-            }}).addTo(map).bindPopup(`${{airport.airport_id}}<br>Altitude: ${{airport.altitude}} ft`);
-        }});
-        
-        // Draw curved lines between low altitude airports if there are at least 2
-        if (lowAltitudeAirports.length >= 2) {{
-            // Sort airports west to east for connection
-            lowAltitudeAirports.sort((a, b) => a.log - b.log);
+        const waypoints = {json.dumps(airports_data.get('waypoints', []))};
+        const allAirports = [...waypoints];
+
+        // Add markers and circles for airports
+        allAirports.forEach(airport => {{
+            // Marker
+            L.marker([airport.lat, airport.lon]).addTo(map).bindPopup(`${{airport.airport_id}}<br>Altitude: ${{airport.altitude}} ft`);
             
-            // Connect the airports with curved lines
+            // Circle for flight rules
+            const warningLevel = airport.warning_level || 5;
+            let circleColor = 'grey';
+            let circleLabel = 'UNKNOWN';
+            
+            switch(warningLevel) {{
+                case 1: circleColor = '#00FF00'; circleLabel = 'VFR'; break;
+                case 2: circleColor = '#FFFF00'; circleLabel = 'MVFR'; break;
+                case 3: circleColor = '#FF9900'; circleLabel = 'IFR'; break;
+                case 4: circleColor = '#FF0000'; circleLabel = 'LIFR'; break;
+            }}
+            
+            L.circle([airport.lat, airport.lon], {{
+                color: circleColor,
+                fillColor: circleColor,
+                fillOpacity: 0.2,
+                radius: 50000,
+                weight: 1
+            }}).addTo(map).bindTooltip(circleLabel);
+        }});
+
+        // Draw curved lines between low altitude airports
+        const lowAltitudeAirports = allAirports.filter(a => a.altitude < 9000);
+        if (lowAltitudeAirports.length >= 2) {{
+            lowAltitudeAirports.sort((a, b) => a.lon - b.lon);
             for (let i = 0; i < lowAltitudeAirports.length - 1; i++) {{
-                const start = [lowAltitudeAirports[i].lat, lowAltitudeAirports[i].log];
-                const end = [lowAltitudeAirports[i+1].lat, lowAltitudeAirports[i+1].log];
-                
-                // Create a curved line
+                const start = [lowAltitudeAirports[i].lat, lowAltitudeAirports[i].lon];
+                const end = [lowAltitudeAirports[i+1].lat, lowAltitudeAirports[i+1].lon];
                 const latlngs = createCurvedLine(start, end);
-                
                 L.polyline(latlngs, {{
                     color: 'black',
                     weight: 3,
-                    opacity: 0.7,
-                    curvature: 0.3
+                    opacity: 0.7
                 }}).addTo(map);
             }}
         }}
-        """
-        
-        # Combine everything
-        final_html = html_first_part + new_js + html_last_part
+    """
 
-        # Render the combined HTML
-        st.subheader("Flight Route Map")
+    final_html = html_first_part + new_js + html_last_part
+    #print(final_html)
 
-        components.html(final_html, height=600)
+    # Display in Streamlit
+    st.subheader("Flight Route Map")
+    components.html(final_html, height=600, scrolling=True)
 
-    # Information sidebar
+
+    
     st.sidebar.header("Map Information")
     st.sidebar.info("""
-    - Black squares: Low altitude airports (<9000 ft)
-    - Red circles: High altitude airports (≥9000 ft)
+    - Markers: All Airports
     - Blue circles: PIREP data points
     - Colored polygons: SIGMET warnings
+    - Yellow circles: en-route warnings
     """)
-    # Display the map
     st.subheader("Flight Route Map")
-    # components.html(html_content, height=500)
+    st.sidebar.header("KEY VALUES")
+    st.sidebar.info("""
+    - VFR: GREEN
+    - MFR: YELLOW
+    - IFR: ORANGE
+    - LIFR: RED
+    - UNKOWN: GREY 
+                    """)
+    
     
     # Display summary section
     st.subheader("Flight Summary")
     with st.container(border=True):
-        st.write("This is the summary of your flight plan based on the weather conditions.")
-        
-        # In a real app, you would generate this summary based on the weather data
-        airport_list = ", ".join([a["icao"] for a in st.session_state.airport_data])
-        st.write(f"Flight route: {airport_list}")
-        st.write("Weather conditions appear favorable for your flight plan.")
-        st.write("No significant weather hazards detected along your route.")
+        final = summary()
+        st.markdown(
+        f"""
+        <div style="background-color: #E3F2FD; padding: 15px; border-radius: 10px; color: #0D47A1; font-family: 'Courier New', monospace;">
+        <pre style="white-space: pre-wrap; word-wrap: break-word;">{final}</pre>
+        </div>
+        """,
+        unsafe_allow_html=True
+        )
+
