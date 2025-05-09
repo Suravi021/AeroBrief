@@ -14,7 +14,7 @@ def get_dropdown_styles(color_name):
 st.set_page_config(layout="wide", page_title="Flight Weather Planning Tool")
 
 airports=[]
-st.title("Flight Weather Planning Tool")
+st.title("✈️ AI Powered Weather Summaries")
 
 if 'airports' not in st.session_state:
     st.session_state.airports = [{"id": str(uuid.uuid4()), "icao": "", "altitude": ""}]
