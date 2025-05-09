@@ -14,10 +14,8 @@ def get_dropdown_styles(color_name):
 st.set_page_config(layout="wide", page_title="Flight Weather Planning Tool")
 
 airports=[]
-# Title of the app
 st.title("Flight Weather Planning Tool")
 
-# Initialize session state variables
 if 'airports' not in st.session_state:
     st.session_state.airports = [{"id": str(uuid.uuid4()), "icao": "", "altitude": ""}]
 if 'submitted' not in st.session_state:
@@ -32,7 +30,6 @@ if 'report' not in st.session_state:
     st.session_state.report = ''
 
 
-# Callbacks for actions outside the form
 if st.session_state.add_airport:
     st.session_state.airports.append({"id": str(uuid.uuid4()), "icao": "", "altitude": ""})
     st.session_state.add_airport = False
@@ -41,12 +38,10 @@ if st.session_state.delete_airport is not None:
     st.session_state.airports = [a for a in st.session_state.airports if a["id"] != st.session_state.delete_airport]
     st.session_state.delete_airport = None
 
-# Add Airport button (outside the form)
 if st.button("➕ Add Airport"):
     st.session_state.add_airport = True
     st.rerun()
 
-# Airport input fields
 for i, airport in enumerate(st.session_state.airports):
     cols = st.columns([3, 2, 1])
     with cols[0]:
@@ -65,13 +60,10 @@ for i, airport in enumerate(st.session_state.airports):
                 st.session_state.delete_airport = airport["id"]
                 st.rerun()
 
-# Submit button (outside the form)
 if st.button("Submit"):
-    # Update airport data from form
     for airport in st.session_state.airports:
         airport["icao"] = st.session_state[f"icao_{airport['id']}"]
         airport["altitude"] = st.session_state[f"alt_{airport['id']}"]
-        # airport["metar"]=fetch_metar()
 
 
         lat, lon= lat_log(airport["icao"])
@@ -87,7 +79,6 @@ if st.button("Submit"):
     with open("airports_st.json", "w") as f:
         json.dump(output_data, f, indent=2)
     
-    # Create airport data for display
     st.session_state.airport_data = []
     for airport in st.session_state.airports:
         if airport["icao"]:
@@ -111,21 +102,16 @@ if st.button("Submit"):
     st.session_state.submitted = True
     st.rerun()
 
-# Display airport data if submitted
 if st.session_state.submitted and st.session_state.airport_data:
-    # Display airports side by side
     num_airports = len(st.session_state.airport_data)
     
-    # Create columns for airports
     airport_cols = st.columns(num_airports)
     
-    # Display airport headers
     for i, col in enumerate(airport_cols):
         if i < len(st.session_state.airport_data):
             airport = st.session_state.airport_data[i]
             col.subheader(f"{airport['icao']} ({airport['altitude']} ft)")
     
-    # Create columns for METAR expandables
     metar_cols = st.columns(num_airports)
     for i, col in enumerate(metar_cols):
         if i < len(st.session_state.airport_data):
@@ -206,8 +192,6 @@ if st.session_state.submitted and st.session_state.airport_data:
                             """, unsafe_allow_html=True) ##########
 
 
-    # Load and display the map
-    # Load your JSON data
     x=generate_quick('airports_st.json')
         
 
@@ -216,13 +200,11 @@ if st.session_state.submitted and st.session_state.airport_data:
 
     with open('pireps.json', 'r', encoding='utf-8') as f:
         pirep_data = json.load(f)
-        ##print(pirep_data)
     if not pirep_data.get('pireps'):
         st.warning("No significant PIREPs found near the flight path.")
         
     with open('route_weather.json', 'r', encoding='utf-8') as f:
         route_weather_data = json.load(f)
-        #print(route_weather_data)
 
     if not route_weather_data.get('warnings'):
             st.warning("No significant weather conditions detected near the flight path.")
@@ -231,18 +213,15 @@ if st.session_state.submitted and st.session_state.airport_data:
     sigmet_json_generator('airports_st.json')
     with open('sigmets_new.json', 'r', encoding='utf-8') as f:
         sigmet_data = json.load(f)
-        #print(sigmet_data)
 
 
     with open('airports_st.json', 'r', encoding='utf-8') as f:
         airports_data = json.load(f)
-        #print(airports_data)
 
 
     with open('index.html', 'r', encoding='utf-8') as file:
         html_content = file.read()
 
-    # Find the insertion point after map initialization
     split_point = html_content.find('////hellow olrd')
     if split_point == -1:
         split_point = html_content.find('var map = L.map')  # Try to find map initialization
@@ -250,17 +229,10 @@ if st.session_state.submitted and st.session_state.airport_data:
             st.error("Could not find the insertion point in HTML")
             split_point = len(html_content)
 
-    # Split the HTML content
     html_first_part = html_content[:split_point]
-    #print()
-    #print()
 
-    #print()
-
-    #print(html_first_part)
     html_last_part = html_content[split_point:]
 
-    #print(html_last_part)
 
     new_js = f"""
         // Function to create a slightly upward curved line between two points
@@ -392,9 +364,7 @@ if st.session_state.submitted and st.session_state.airport_data:
     """
 
     final_html = html_first_part + new_js + html_last_part
-    #print(final_html)
 
-    # Display in Streamlit
     st.subheader("Flight Route Map")
     components.html(final_html, height=600, scrolling=True)
 
@@ -418,7 +388,6 @@ if st.session_state.submitted and st.session_state.airport_data:
                     """)
     
     
-    # Display summary section
     st.subheader("Flight Summary")
     with st.container(border=True):
         final = summary()
